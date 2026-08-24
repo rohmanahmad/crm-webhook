@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import { sessionPathFile } from "../config";
 
-const acceptedCookieKeys = ['csrf_cookie_name', 'sp_session']
+const acceptedCookieKeys = ['csrf_cookie_name', 'sp_session', '_oauth2_proxy']
 
 export class SessionService {
     protected sessionPath = sessionPathFile
@@ -19,11 +19,32 @@ export class SessionService {
     parsingSessionData(data: string[]): Record<string, string> {
         const sessionData: Record<string, string> = {}
         for (const cookie of data) {
+            if (!cookie) continue
             const [cookieKey, cookieValue] = cookie.split('=');
             if (acceptedCookieKeys.includes(cookieKey.trim())) {
                 sessionData[cookieKey.trim()] = cookieValue.trim().split(';')[0]
             }
         }
+        return sessionData
+    }
+
+    async patchSessionData(data: Record<string, string>): Promise<Record<string, string>> {
+        const sessionData: Record<string, string> = {}
+        for (const [cookieKey, cookieValue] of Object.entries(data)) {
+            if (acceptedCookieKeys.includes(cookieKey.trim())) {
+                sessionData[cookieKey.trim()] = cookieValue.trim().split(';')[0]
+            }
+        }
+        if (Object.keys(sessionData).length === 0) {
+            throw new Error('No valid session data found in the provided data.')
+        }
+        const oldSession = await this.getSession()
+        const mergedSession = {
+            ...oldSession,
+            ...sessionData
+        }
+        await writeFile(this.sessionPath, JSON.stringify(mergedSession), 'utf-8')
+        
         return sessionData
     }
 

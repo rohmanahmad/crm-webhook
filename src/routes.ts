@@ -22,4 +22,14 @@ router.get('/health', async (req, res, next) => {
   }
 });
 
+// Patch endpoint (lazy-loaded)
+router.get('/patch', async (req, res, next) => {
+  try {
+    const { patchController } = await import('./controllers/patch');
+    patchController(req, res);
+  } catch (err) {
+    next(err);
+  }
+});
+
 export default router;

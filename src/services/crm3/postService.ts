@@ -28,7 +28,7 @@ export class Crm3PostService extends BaseService{
     async tryPostTask(taskData: TaskData) {
         const url = this.postTaskUrl;
         const formData = new FormData()
-        const cookies = await this.sessionService.getValueOfSession(['csrf_cookie_name', 'sp_session'])
+        const cookies = await this.sessionService.getValueOfSession(['csrf_cookie_name', 'sp_session', '_oauth2_proxy'])
         if (!cookies) {
             this.logger.error('No session found, cannot post task');
             return null
@@ -39,14 +39,14 @@ export class Crm3PostService extends BaseService{
         }
         const response = await this.httpClient.postRequest(url, formData, {
             headers: {
-                'Cookie': [`csrf_cookie_name=${cookies['csrf_cookie_name']}`, `sp_session=${cookies['sp_session']}`].join('; ')
+                'Cookie': [`csrf_cookie_name=${cookies['csrf_cookie_name']}`, `sp_session=${cookies['sp_session']}`, `_oauth2_proxy=${cookies['_oauth2_proxy']}`].join('; ')
             }
         });
         return response.data
     }
 
     async updateStatusToProgress(taskId: number) {
-        const cookies = await this.sessionService.getValueOfSession(['csrf_cookie_name', 'sp_session'])
+        const cookies = await this.sessionService.getValueOfSession(['csrf_cookie_name', 'sp_session', '_oauth2_proxy'])
         const csrf = cookies ? cookies['csrf_cookie_name'] : ''
         const url = baseUrl + `/admin/tasks/mark_as/4/${taskId}?single_task=true&csrf_token_name=${csrf}` // 4: in CRM3 is the status id for "In Progress"
         if (!cookies) {
@@ -55,7 +55,7 @@ export class Crm3PostService extends BaseService{
         }
         const response = await this.httpClient.getRequest(url, {
             headers: {
-                'Cookie': [`csrf_cookie_name=${cookies['csrf_cookie_name']}`, `sp_session=${cookies['sp_session']}`].join('; ')
+                'Cookie': [`csrf_cookie_name=${cookies['csrf_cookie_name']}`, `sp_session=${cookies['sp_session']}`, `_oauth2_proxy=${cookies['_oauth2_proxy']}`].join('; ')
             }
         });
         if (response && response.data && response.data.message) {

@@ -17,7 +17,7 @@ export class Crm3AuthService extends BaseService {
     }
 
     async getCurrentCookies() : Promise<null|string[]> {
-        const existingSession = await this.sessionService.getValueOfSession(['sp_session', 'csrf_cookie_name'])
+        const existingSession = await this.sessionService.getValueOfSession(['sp_session', 'csrf_cookie_name','_oauth2_proxy'])
         if (!existingSession) {
             this.logger.info('No existing session found, proceeding with login');
             return null
